@@ -10,7 +10,7 @@ Everything is connected in real time. When the worker logs 6 mixes, the admin se
 - **React** — runs in any phone browser, no download needed
 - **Supabase** — database, realtime broadcasts, auth
 - **Cloudflare Workers** — hosting at `live-cake-flow.daniellamutai97.workers.dev` (switched from Vercel — the app uses TanStack Start with SSR, which builds to Cloudflare Workers format via `wrangler.jsonc`; Vercel expected a plain Vite `dist/` output and returned 404. Cloudflare is the correct target for this stack. Custom domain to be added before client handoff.)
-- **M-Pesa-style balance top-up** — customers pre-fund a balance which sales staff draw down across purchases; currently confirmed via an SMS-forwarding webhook, with a move to a proper Paystack test-mode integration planned (see Pending below)
+- **Prepaid customer balance** — customers pre-fund a balance which sales staff draw down across purchases, topped up via Paystack (test mode, M-Pesa/card checkout)
 
 ---
 
@@ -199,10 +199,7 @@ Every staff member who logged in today: name, role, shift, login time, logout ti
 - ✅ Admin flour set stock — admin can set exact sack count to correct any discrepancy, alongside existing "Add flour" button
 
 ### Done ✅ (continued)
-- ✅ Balance top-up webhook — Supabase Edge Function receives a forwarded payment SMS, parses amount + phone number, inserts into the payments table, DB trigger updates customer balance automatically. Secured with a webhook secret. Handles both 07XXXXXXXXX and 254XXXXXXXXX phone formats.
-
-### Pending ⏳
-- **Paystack test-mode integration** — replace the SMS-forwarding webhook with a proper cryptographically-verified Paystack webhook + top-up flow. No till number is used in this design.
+- ✅ Paystack test-mode integration — customer balance top-ups go through Paystack (M-Pesa/card checkout). A `paystack-initialize` Edge Function starts the transaction server-side; a `paystack-webhook` Edge Function verifies Paystack's HMAC-SHA512 signature before crediting, and is idempotent via a database-level unique constraint on the payment reference, so a retried webhook delivery can never double-credit a balance. No till number is used in this design.
 
 ---
 
