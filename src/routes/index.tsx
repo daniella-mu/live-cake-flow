@@ -65,7 +65,7 @@ function Landing() {
           {[
             { t: "Worker", d: "Logs mixes. Stock updates instantly." },
             { t: "Delivery", d: "Departs, arrives, returns empties." },
-            { t: "Sales", d: "Mpesa-aware checkout + live stock." },
+            { t: "Sales", d: "Paystack-powered top-ups + live stock." },
             { t: "Admin", d: "Sees everything, from anywhere." },
           ].map((x) => (
             <div key={x.t} className="rounded-2xl border border-border bg-card p-5 shadow-soft">
