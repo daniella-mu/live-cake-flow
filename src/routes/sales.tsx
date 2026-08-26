@@ -139,7 +139,7 @@ function SalesView() {
 
   async function recordSale() {
     if (!user || !settings || !productId || cakes < 1) return;
-    if (!selectedCustomer) return toast.error("Select a customer first — they must have paid via M-Pesa");
+    if (!selectedCustomer) return toast.error("Select a customer first — they must have a topped-up balance");
     if (cakes > stockFor(productId)) return toast.error("Not enough stock at market");
     if (selectedCustomer.balance < total)
       return toast.error(`Insufficient balance — customer needs to send ${fmtKES(total - selectedCustomer.balance)} more`);
