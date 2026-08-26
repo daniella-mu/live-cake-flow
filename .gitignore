@@ -32,8 +32,6 @@ PAYSTACK_MIGRATION_PLAN.md
 REBRAND_PLAN.md
 DISCREPANCY_CORRECTION_GAP.md
 
-# Temporary safety-net copy of the old git history — delete once relaunch is confirmed working
-.git-backup/
 
 # Editor directories and files
 .vscode/*
