@@ -11,6 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { fmtKES, fmtNum } from "@/lib/format";
 import { Search } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+
 
 export const Route = createFileRoute("/sales")({
   head: () => ({ meta: [{ title: "Sales — EllaCakeHub" }] }),
@@ -241,6 +244,9 @@ function SalesView() {
   const [topUpAmount, setTopUpAmount] = useState<number>(0);
   const [topUpEmail, setTopUpEmail] = useState("");
   const [topUpBusy, setTopUpBusy] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [topUpStartBalance, setTopUpStartBalance] = useState(0);
+
 
   useEffect(() => {
     setTopUpEmail(selectedCustomer?.email ?? "");
@@ -257,11 +263,41 @@ function SalesView() {
     });
     setTopUpBusy(false);
     if (error) return toast.error(error.message);
-    window.open(data.authorization_url, "_blank");
-    toast.success("Opened Paystack checkout — balance updates automatically once paid");
+    setTopUpStartBalance(selectedCustomer.balance);
+    setCheckoutUrl(data.authorization_url);
   }
 
+  useEffect(() => {
+    if (!checkoutUrl || !selectedCustomer) return;
+    if (selectedCustomer.balance > topUpStartBalance) {
+      setCheckoutUrl(null);
+      toast.success(`Payment received — new balance ${fmtKES(selectedCustomer.balance)}`);
+    }
+  }, [selectedCustomer?.balance]);
+
   return (
+    <>
+      <Dialog open={!!checkoutUrl} onOpenChange={(open) => !open && setCheckoutUrl(null)}>
+       <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Scan to pay</DialogTitle>
+          <DialogDescription>
+            Have the customer scan this with their own phone to complete checkout on their own device. Balance updates automatically once paid.
+          </DialogDescription>
+        </DialogHeader>
+        {checkoutUrl && (
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div className="rounded-lg bg-white p-4">
+              <QRCodeSVG value={checkoutUrl} size={200} />
+            </div>
+            <Button type="button" variant="outline" onClick={() => window.open(checkoutUrl, "_blank")}>
+              Open here instead
+            </Button>
+          </div>
+        )}
+       </DialogContent>
+      </Dialog>
+
     <div className="grid gap-6 lg:grid-cols-3">
 
       {/* Step 4 — Delivery arrived, sales confirms receipt */}
@@ -500,6 +536,7 @@ function SalesView() {
         </div>
       </Card>
     </div>
+    </>
   );
 }
 
