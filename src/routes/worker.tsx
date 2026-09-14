@@ -100,7 +100,7 @@ function WorkerView() {
     if (error) { setBusy(false); return toast.error(error.message); }
 
     setBusy(false);
-    toast.success(`Logged ${mixes} mix${mixes>1?"es":""} → ${crates} crates`);
+    toast.success(`Logged ${mixes} mix${mixes>1?"es":""} → ${crates} crate${crates>1?"s":""}`);
     setMixes(1);
     setNote("");
   }
@@ -147,7 +147,7 @@ function WorkerView() {
               <div className="text-xs uppercase tracking-wide text-muted-foreground">Output</div>
               <div className="mt-1 flex items-baseline gap-3">
                 <span className="font-display text-3xl font-semibold">{preview.crates}</span>
-                <span className="text-sm text-muted-foreground">full crates · {preview.cakes} cakes</span>
+                <span className="text-sm text-muted-foreground">full crate{preview.crates !== 1 ? "s" : ""} · {preview.cakes} cake{preview.cakes !== 1 ? "s" : ""}</span>
               </div>
               {preview.partialCakes > 0 && (
                 <div className="mt-2 rounded-lg border border-warning bg-warning/10 px-3 py-2 text-sm">
@@ -173,7 +173,7 @@ function WorkerView() {
           <h2 className="font-display text-2xl font-semibold">Today</h2>
           <div className="text-right">
             <div className="font-display text-3xl font-semibold">{fmtNum(todayCrates)}</div>
-            <div className="text-xs text-muted-foreground">crates · {fmtNum(todayCakes)} cakes</div>
+            <div className="text-xs text-muted-foreground">crate{todayCrates !== 1 ? "s" : ""} · {fmtNum(todayCakes)} cake{todayCakes !== 1 ? "s" : ""}</div>
           </div>
         </div>
         <div className="mt-4 space-y-2">
@@ -187,7 +187,7 @@ function WorkerView() {
                   <div className="text-xs text-muted-foreground">{format(new Date(b.created_at), "HH:mm")} · {b.mixes} mix{b.mixes > 1 ? "es" : ""}{b.note ? ` · ${b.note}` : ""}</div>
                 </div>
                 <div className="text-right">
-                  <div className="font-medium">{b.crates_produced} crates</div>
+                  <div className="font-medium">{b.crates_produced} crate{b.crates_produced !== 1 ? "s" : ""}</div>
                   <div className="text-xs text-muted-foreground">{b.cakes_produced} cakes</div>
                 </div>
               </div>

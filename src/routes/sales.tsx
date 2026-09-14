@@ -398,7 +398,7 @@ function SalesView() {
                   <button key={p.id} type="button" onClick={() => setProductId(p.id)}
                     className={`rounded-xl border p-3 text-left transition ${productId === p.id ? "border-primary bg-accent/30" : "border-border bg-card hover:bg-muted"}`}>
                     <div className="font-medium">{p.name}</div>
-                    <div className="text-xs text-muted-foreground">{avail} cakes left</div>
+                    <div className="text-xs text-muted-foreground">{avail} cake{avail !== 1 ? "s" : ""} left</div>
                   </button>
                 );
               })}
@@ -520,6 +520,7 @@ function SalesView() {
           {products.map((p) => {
             const c = stockFor(p.id);
             const value = c * (settings?.retail_price ?? 0);
+            const crates = Math.floor(c / p.cakes_per_crate);
             return (
               <div key={p.id} className="rounded-lg border border-border bg-card p-3">
                 <div className="flex items-baseline justify-between">
@@ -527,7 +528,7 @@ function SalesView() {
                   <div className="font-display text-2xl">{fmtNum(c)}</div>
                 </div>
                 <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{Math.floor(c / p.cakes_per_crate)} crates</span>
+                  <span>{crates} crate{crates !== 1 ? "s" : ""}</span>
                   <span>{fmtKES(value)}</span>
                 </div>
               </div>

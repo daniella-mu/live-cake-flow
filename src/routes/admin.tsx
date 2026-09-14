@@ -210,7 +210,7 @@ function AdminView() {
     if (!sacks || sacks <= 0) return toast.error("Enter a valid amount");
     const { error } = await supabase.from("settings").update({ flour_stock_kg: (settings?.flour_stock_kg ?? 0) + sacks }).eq("id", 1);
     if (error) toast.error(error.message);
-    else { toast.success(`Added ${sacks} sacks of flour`); if (flourRef.current) flourRef.current.value = ""; bootstrap(); }
+    else { toast.success(`Added ${sacks} sack${sacks !== 1 ? "s" : ""} of flour`); if (flourRef.current) flourRef.current.value = ""; bootstrap(); }
   }
   async function setFlour(e: React.FormEvent) {
     e.preventDefault();
@@ -218,7 +218,7 @@ function AdminView() {
     if (!sacks || sacks < 0) return toast.error("Enter a valid amount");
     const { error } = await supabase.from("settings").update({ flour_stock_kg: sacks }).eq("id", 1);
     if (error) toast.error(error.message);
-    else { toast.success(`Flour stock set to ${sacks} sacks`); if (flourSetRef.current) flourSetRef.current.value = ""; bootstrap(); }
+    else { toast.success(`Flour stock set to ${sacks} sack${sacks !== 1 ? "s" : ""}`); if (flourSetRef.current) flourSetRef.current.value = ""; bootstrap(); }
   }
 
   async function adjustStock(productId: string, location: "store" | "transit" | "market", cakes: number) {
@@ -427,7 +427,7 @@ function AdminView() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-xs uppercase tracking-wide text-muted-foreground">Flour remaining after today's production</div>
-                <div className="mt-1 font-display text-3xl font-semibold">{(settings?.flour_stock_kg ?? 0).toFixed(1)} sacks</div>
+                <div className="mt-1 font-display text-3xl font-semibold">{(settings?.flour_stock_kg ?? 0).toFixed(1)} sack{(settings?.flour_stock_kg ?? 0) !== 1 ? "s" : ""}</div>
               </div>
               {flourDays !== null && flourDays < 2 && (
                 <div className="rounded-lg border border-destructive/50 bg-destructive/5 px-3 py-2 text-sm text-destructive font-medium">
@@ -516,6 +516,8 @@ function AdminView() {
               <div className="space-y-2">
                 {mismatches.map((m) => {
                   const resolved = !!m.acknowledged_at;
+                  const diff = Math.abs(m.crates_to_return - m.empty_crates_returned);
+                  const crate = (n: number) => `${n} crate${n !== 1 ? "s" : ""}`;
                   return (
                     <div key={m.id} className={`flex items-center justify-between gap-4 rounded-lg border px-4 py-3 ${resolved ? "border-border bg-muted/30" : "border-destructive/40 bg-destructive/5"}`}>
                       <div>
@@ -523,7 +525,7 @@ function AdminView() {
                           Trip on {m.completed_at ? new Date(m.completed_at).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" }) : "—"}
                         </div>
                         <div className={`text-xs mt-0.5 ${resolved ? "text-muted-foreground" : "text-destructive/80"}`}>
-                          Sales said {m.crates_to_return} crates · Driver returned {m.empty_crates_returned} · Diff: {Math.abs(m.crates_to_return - m.empty_crates_returned)}
+                          Sales said {crate(m.crates_to_return)} · Driver returned {crate(m.empty_crates_returned)} · Diff: {crate(diff)}
                         </div>
                         {resolved && (
                           <div className="text-xs text-muted-foreground mt-0.5">

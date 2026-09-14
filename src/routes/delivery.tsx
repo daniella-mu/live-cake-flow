@@ -177,7 +177,7 @@ function DeliveryView() {
                 return (
                   <div key={it.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
                     <div className="font-medium">{p?.name}</div>
-                    <div className="text-sm text-muted-foreground">{it.crates} crates · {it.cakes} cakes</div>
+                    <div className="text-sm text-muted-foreground">{it.crates} crate{it.crates !== 1 ? "s" : ""} · {it.cakes} cake{it.cakes !== 1 ? "s" : ""}</div>
                   </div>
                 );
               })}
@@ -212,7 +212,7 @@ function DeliveryView() {
                   <div className="rounded-xl border border-border bg-muted/40 p-3 text-sm">
                     Sales is returning <span className="font-semibold">{trip.crates_to_return}</span> empty crates.
                     {trip.overnight_crates != null && (
-                      <span className="block text-muted-foreground">{trip.overnight_crates} crates staying overnight at market.</span>
+                      <span className="block text-muted-foreground">{trip.overnight_crates} crate{trip.overnight_crates !== 1 ? "s" : ""} staying overnight at market.</span>
                     )}
                   </div>
                   <div>
