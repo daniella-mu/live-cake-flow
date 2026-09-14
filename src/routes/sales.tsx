@@ -346,8 +346,8 @@ function SalesView() {
         <Card className="lg:col-span-3 p-5 border-border bg-muted/30">
           <Badge variant="outline">Waiting for driver</Badge>
           <p className="mt-1 text-sm text-muted-foreground">
-            Return logged: <span className="font-medium">{receivedTrip.crates_to_return} empty crates</span>
-            {receivedTrip.overnight_crates != null && ` · ${receivedTrip.overnight_crates} staying overnight`}.
+            Return logged: <span className="font-medium">{receivedTrip.crates_to_return} empty crate{receivedTrip.crates_to_return !== 1 ? "s" : ""}</span>
+            {receivedTrip.overnight_crates != null && ` · ${receivedTrip.overnight_crates} crate${receivedTrip.overnight_crates !== 1 ? "s" : ""} staying overnight`}.
             Waiting for the driver to confirm pickup.
           </p>
         </Card>
