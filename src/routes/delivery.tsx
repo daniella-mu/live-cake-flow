@@ -122,7 +122,7 @@ function DeliveryView() {
     if (salesSaid === null) return toast.error("Sales has not prepared the return yet — wait for them to log it.");
     if (empties !== salesSaid) {
       const confirmed = window.confirm(
-        `⚠️ Mismatch detected!\nSales said ${salesSaid} empty crates.\nYou counted ${empties}.\n\nComplete the trip anyway?`
+        `⚠️ Mismatch detected!\nSales said ${salesSaid} empty crate${salesSaid !== 1 ? "s" : ""}.\nYou counted ${empties} crate${empties !== 1 ? "s" : ""}.\n\nComplete the trip anyway?`
       );
       if (!confirmed) return;
     }
@@ -210,7 +210,7 @@ function DeliveryView() {
               {trip.status === "received" && salesReadyToComplete && (
                 <div className="space-y-3">
                   <div className="rounded-xl border border-border bg-muted/40 p-3 text-sm">
-                    Sales is returning <span className="font-semibold">{trip.crates_to_return}</span> empty crates.
+                    Sales is returning <span className="font-semibold">{trip.crates_to_return}</span> empty crate{trip.crates_to_return !== 1 ? "s" : ""}.
                     {trip.overnight_crates != null && (
                       <span className="block text-muted-foreground">{trip.overnight_crates} crate{trip.overnight_crates !== 1 ? "s" : ""} staying overnight at market.</span>
                     )}
