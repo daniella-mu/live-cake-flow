@@ -25,7 +25,7 @@ interface Product { id: string; name: string; cakes_per_crate: number; flour_per
 interface Stock { product_id: string; location: "store"|"transit"|"market"; cakes: number; }
 interface Sale { id: string; created_at: string; cakes: number; total: number; product_id: string; customer_id: string|null; sale_type: string; sales_user_id: string|null; }
 interface Batch { id: string; created_at: string; mixes: number; crates_produced: number; cakes_produced: number; product_id: string; flour_used_kg: number; shift: string|null; }
-interface Settings { retail_price: number; wholesale_price: number; flour_stock_kg: number; flour_per_mix_kg: number; }
+interface Settings { retail_price: number; wholesale_price: number; flour_stock_kg: number; flour_per_mix_kg: number; cakes_per_crate: number; }
 interface Customer { id: string; name: string; balance: number; }
 interface Trip { id: string; status: string; departed_at: string|null; arrived_at: string|null; }
 interface MismatchTrip { id: string; completed_at: string|null; crates_to_return: number; empty_crates_returned: number; acknowledged_at: string|null; }
