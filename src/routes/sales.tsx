@@ -178,6 +178,7 @@ function SalesView() {
     toast.success("Receipt confirmed — stock moved to market");
     setCratesReceived(0);
     setBrokenCakes(0);
+    loadTrips();
   }
 
   // Step 5 — sales prepares return
@@ -192,6 +193,7 @@ function SalesView() {
     toast.success("Return logged — waiting for driver to confirm");
     setCratesToReturn(0);
     setOvernightCrates(0);
+    loadTrips();
   }
 
   async function logExchange() {
@@ -239,6 +241,7 @@ function SalesView() {
     const { error } = await supabase.from("customers").insert({ name, phone });
     if (error) return toast.error(error.message);
     toast.success("Customer added");
+    loadCustomers(search);
   }
 
   const [topUpAmount, setTopUpAmount] = useState<number>(0);
