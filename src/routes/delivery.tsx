@@ -114,6 +114,7 @@ function DeliveryView() {
     const { error } = await supabase.from("trips").update(patch).eq("id", trip.id);
     if (error) return toast.error(error.message);
     toast.success(`Marked ${s.replace("_"," ")}`);
+    bootstrap();
   }
 
   async function completeTrip() {

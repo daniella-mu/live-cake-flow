@@ -103,6 +103,7 @@ function WorkerView() {
     toast.success(`Logged ${mixes} mix${mixes>1?"es":""} → ${crates} crate${crates>1?"s":""}`);
     setMixes(1);
     setNote("");
+    loadBatches();
   }
 
   const todayCakes = batches.reduce((s,b) => s + b.cakes_produced, 0);
