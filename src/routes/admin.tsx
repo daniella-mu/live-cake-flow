@@ -58,6 +58,7 @@ function AdminView() {
   const [completedTripsYesterday, setCompletedTripsYesterday] = useState<CompletedTrip[]>([]);
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [tick, setTick] = useState(0);
+  const [activeTab, setActiveTab] = useState("sales");
 
   useEffect(() => {
     const t = setInterval(() => setTick((n) => n + 1), 5000);
@@ -250,11 +251,11 @@ function AdminView() {
           <div className="text-sm font-semibold text-destructive">
             ⚠️ {mismatches.filter((m) => !m.acknowledged_at).length} crate discrepanc{mismatches.filter((m) => !m.acknowledged_at).length > 1 ? "ies" : "y"} need attention
           </div>
-          <span className="text-xs text-destructive/70 shrink-0">See Discrepancies tab →</span>
+          <button type="button" onClick={() => setActiveTab("mismatches")} className="text-xs text-destructive/70 shrink-0 hover:underline">See Discrepancies tab →</button>
         </div>
       )}
 
-      <Tabs defaultValue="sales">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full justify-start">
           <TabsTrigger value="sales">Sales</TabsTrigger>
           <TabsTrigger value="stock">Stock</TabsTrigger>
