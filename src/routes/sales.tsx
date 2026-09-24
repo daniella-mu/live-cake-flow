@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { fmtKES, fmtNum } from "@/lib/format";
 import { Search } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 
 export const Route = createFileRoute("/sales")({
@@ -235,12 +235,16 @@ function SalesView() {
   }
 
   async function addCustomer() {
-    const name = prompt("Customer name?");
-    if (!name) return;
-    const phone = prompt("Phone (optional)") || null;
-    const { error } = await supabase.from("customers").insert({ name, phone });
+    if (!newCustomerName.trim()) return toast.error("Enter a name");
+    setNewCustomerBusy(true);
+    const {error} = await supabase.from("customers").insert({name: newCustomerName.trim(), phone: newCustomerPhone.trim() || null,
+    });
+    setNewCustomerBusy(false);
     if (error) return toast.error(error.message);
     toast.success("Customer added");
+    setNewCustomerOpen(false);
+    setNewCustomerName("");
+    setNewCustomerPhone("");
     loadCustomers(search);
   }
 
@@ -249,6 +253,10 @@ function SalesView() {
   const [topUpBusy, setTopUpBusy] = useState(false);
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [topUpStartBalance, setTopUpStartBalance] = useState(0);
+  const [newCustomerOpen, setNewCustomerOpen] = useState(false);
+  const [newCustomerName, setNewCustomerName] = useState("");
+  const [newCustomerPhone, setNewCustomerPhone] = useState("");
+  const [newCustomerBusy, setNewCustomerBusy] = useState(false);
 
 
   useEffect(() => {
@@ -299,6 +307,29 @@ function SalesView() {
           </div>
         )}
        </DialogContent>
+      </Dialog>
+
+      <Dialog open={newCustomerOpen} onOpenChange={setNewCustomerOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>New customer</DialogTitle>
+            <DialogDescription>Add a customer so you can search for and sell to them.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div>
+              <Label>Name</Label>
+              <Input value={newCustomerName} onChange={(e) => setNewCustomerName(e.target.value)} placeholder="Customer name" className="mt-1" />
+            </div>
+            <div>
+              <Label>Phone (optional)</Label>
+              <Input value={newCustomerPhone} onChange={(e) => setNewCustomerPhone(e.target.value)} placeholder="e.g. 07XXXXXXXX" className="mt-1" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setNewCustomerOpen(false)}>Cancel</Button>
+            <Button type="button" onClick={addCustomer} disabled={newCustomerBusy}>{newCustomerBusy ? "Adding…" : "Add customer"}</Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
 
     <div className="grid gap-6 lg:grid-cols-3">
@@ -378,7 +409,7 @@ function SalesView() {
                   {c.name} <span className="ml-1 text-xs text-muted-foreground">{fmtKES(c.balance)}</span>
                 </button>
               ))}
-              <Button type="button" variant="ghost" size="sm" onClick={addCustomer}>+ New</Button>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setNewCustomerOpen(true)}>+ New</Button>
             </div>
             {selectedCustomer && (
               <div className="mt-3 rounded-xl border border-border bg-card p-3 space-y-2">

@@ -10,6 +10,16 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { elapsed, fmtNum } from "@/lib/format";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/delivery")({
   head: () => ({ meta: [{ title: "Delivery — EllaCakeHub" }] }),
@@ -40,6 +50,7 @@ function DeliveryView() {
   const [items, setItems] = useState<TripItem[]>([]);
   const [draftCrates, setDraftCrates] = useState<Record<string, number>>({});
   const [empties, setEmpties] = useState<number>(0);
+  const [mismatchDialogOpen, setMismatchDialogOpen] = useState(false);
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -122,17 +133,37 @@ function DeliveryView() {
     const salesSaid = trip.crates_to_return ?? null;
     if (salesSaid === null) return toast.error("Sales has not prepared the return yet — wait for them to log it.");
     if (empties !== salesSaid) {
-      const confirmed = window.confirm(
-        `⚠️ Mismatch detected!\nSales said ${salesSaid} empty crate${salesSaid !== 1 ? "s" : ""}.\nYou counted ${empties} crate${empties !== 1 ? "s" : ""}.\n\nComplete the trip anyway?`
-      );
-      if (!confirmed) return;
+      setMismatchDialogOpen(true);
+      return;
     }
+    await setStatus("completed", { empty_crates_returned: empties });
+  }
+
+  async function confirmCompleteAnyway() {
+    setMismatchDialogOpen(false);
     await setStatus("completed", { empty_crates_returned: empties });
   }
 
   const salesReadyToComplete = trip?.status === "received" && trip.crates_to_return !== null;
 
   return (
+    <>
+      <AlertDialog open={mismatchDialogOpen} onOpenChange={setMismatchDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mismatch detected</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sales said {trip?.crates_to_return} empty crate{trip?.crates_to_return !== 1 ? "s" : ""}. You counted {empties} crate{empties !== 1 ? "s" : ""}.
+              <br />
+              Complete the trip anyway?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmCompleteAnyway}>Complete anyway</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     <div className="grid gap-6 md:grid-cols-2">
       {!trip && (
         <Card className="p-6 md:col-span-2">
@@ -256,6 +287,7 @@ function DeliveryView() {
         </>
       )}
     </div>
+    </>
   );
 }
 
