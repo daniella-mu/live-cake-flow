@@ -25,7 +25,7 @@ interface Product { id: string; name: string; cakes_per_crate: number; flour_per
 interface Stock { product_id: string; location: "store"|"transit"|"market"; cakes: number; }
 interface Sale { id: string; created_at: string; cakes: number; total: number; product_id: string; customer_id: string|null; sale_type: string; sales_user_id: string|null; }
 interface Batch { id: string; created_at: string; mixes: number; crates_produced: number; cakes_produced: number; product_id: string; flour_used_kg: number; shift: string|null; }
-interface Settings { retail_price: number; wholesale_price: number; flour_stock_kg: number; flour_per_mix_kg: number; cakes_per_crate: number; }
+interface Settings { retail_price: number; wholesale_price: number; flour_stock_sacks: number; flour_per_mix_kg: number; cakes_per_crate: number; }
 interface Customer { id: string; name: string; balance: number; }
 interface Trip { id: string; status: string; departed_at: string|null; arrived_at: string|null; }
 interface MismatchTrip { id: string; completed_at: string|null; crates_to_return: number; empty_crates_returned: number; acknowledged_at: string|null; }
@@ -59,6 +59,8 @@ function AdminView() {
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [tick, setTick] = useState(0);
   const [activeTab, setActiveTab] = useState("sales");
+  const [departedCratesToday, setDepartedCratesToday] = useState(0);
+
 
   useEffect(() => {
     const t = setInterval(() => setTick((n) => n + 1), 5000);
@@ -76,7 +78,7 @@ function AdminView() {
   async function bootstrap() {
     const today = new Date(); today.setHours(0,0,0,0);
     const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
-    const [p, s, sa, se, c, t, pr, ur, ws, ba, ct, cy, ex] = await Promise.all([
+    const [p, s, sa, se, c, t, pr, ur, ws, ba, ct, cy, ex, di] = await Promise.all([
       supabase.from("products").select("*").order("name"),
       supabase.from("stock").select("*"),
       supabase.from("sales").select("*").gte("created_at", today.toISOString()).order("created_at",{ascending:false}),
@@ -90,8 +92,9 @@ function AdminView() {
       supabase.from("trips").select("id,completed_at,overnight_crates,empty_crates_returned").eq("status","completed").gte("completed_at", today.toISOString()),
       supabase.from("trips").select("id,completed_at,overnight_crates,empty_crates_returned").eq("status","completed").gte("completed_at", yesterday.toISOString()).lt("completed_at", today.toISOString()),
       supabase.from("exchanges").select("*").gte("created_at", today.toISOString()).order("created_at",{ascending:false}),
+      supabase.from("trip_items").select("crates, trips!inner(departed_at)").gte("trips.departed_at", today.toISOString()),
     ]);
-    const anyError = [p,s,sa,se,c,t,pr,ur,ws,ba,ct,cy,ex].find((r) => r.error);
+    const anyError = [p,s,sa,se,c,t,pr,ur,ws,ba,ct,cy,ex,di].find((r) => r.error);
     if (anyError) { toast.error("Failed to load dashboard data — check your connection"); return; }
     setProducts((p.data ?? []) as Product[]);
     setStock((s.data ?? []) as Stock[]);
@@ -106,6 +109,7 @@ function AdminView() {
     setCompletedTripsToday((ct.data ?? []) as CompletedTrip[]);
     setCompletedTripsYesterday((cy.data ?? []) as CompletedTrip[]);
     setExchanges((ex.data ?? []) as Exchange[]);
+    setDepartedCratesToday(((di.data ?? []) as { crates: number }[]).reduce((s, r) => s + r.crates, 0));
     const { data: mm } = await supabase.from("trips")
       .select("id,completed_at,crates_to_return,empty_crates_returned,acknowledged_at")
       .eq("status", "completed")
@@ -156,7 +160,7 @@ function AdminView() {
     if (!settings) return null;
     const flourUsedToday = batches.reduce((s, b) => s + b.flour_used_kg, 0);
     if (flourUsedToday === 0) return null;
-    const flourStockKg = settings.flour_stock_kg * 50;
+    const flourStockKg = settings.flour_stock_sacks * 50;
     return Math.max(0, flourStockKg / flourUsedToday);
   }, [settings, batches]);
 
@@ -172,12 +176,12 @@ function AdminView() {
     const inTransitCrates = Math.round(stockByLoc.transit / cakesPerCrate);
     const atMarketCrates = Math.round(stockByLoc.market / cakesPerCrate);
     const returnedEmptyToday = completedTripsToday.reduce((s, t) => s + (t.empty_crates_returned ?? 0), 0);
-    const leftStoreToday = inTransitCrates + atMarketCrates + returnedEmptyToday;
+    const leftStoreToday = departedCratesToday;
     const emptyInStore = openingEmpty + returnedEmptyToday;
     const tomorrowWithCakes = completedTripsToday.reduce((s, t) => s + (t.overnight_crates ?? 0), 0);
     const tomorrowEmpty = emptyInStore;
     return { openingWithCakes, openingEmpty, producedToday, totalAvailable, inStoreCrates, inTransitCrates, atMarketCrates, returnedEmptyToday, leftStoreToday, emptyInStore, tomorrowWithCakes, tomorrowEmpty };
-  }, [completedTripsYesterday, completedTripsToday, batches, stockByLoc, settings]);
+  }, [completedTripsYesterday, completedTripsToday, batches, stockByLoc, settings, departedCratesToday]);
 
   const productStock = useMemo(() => {
     return products.map((p) => {
@@ -209,7 +213,7 @@ function AdminView() {
     e.preventDefault();
     const sacks = parseFloat(flourRef.current?.value ?? "");
     if (!sacks || sacks <= 0) return toast.error("Enter a valid amount");
-    const { error } = await supabase.from("settings").update({ flour_stock_kg: (settings?.flour_stock_kg ?? 0) + sacks }).eq("id", 1);
+    const { error } = await supabase.from("settings").update({ flour_stock_sacks: (settings?.flour_stock_sacks ?? 0) + sacks }).eq("id", 1);
     if (error) toast.error(error.message);
     else { toast.success(`Added ${sacks} sack${sacks !== 1 ? "s" : ""} of flour`); if (flourRef.current) flourRef.current.value = ""; bootstrap(); }
   }
@@ -217,7 +221,7 @@ function AdminView() {
     e.preventDefault();
     const sacks = parseFloat(flourSetRef.current?.value ?? "");
     if (!sacks || sacks < 0) return toast.error("Enter a valid amount");
-    const { error } = await supabase.from("settings").update({ flour_stock_kg: sacks }).eq("id", 1);
+    const { error } = await supabase.from("settings").update({ flour_stock_sacks: sacks }).eq("id", 1);
     if (error) toast.error(error.message);
     else { toast.success(`Flour stock set to ${sacks} sack${sacks !== 1 ? "s" : ""}`); if (flourSetRef.current) flourSetRef.current.value = ""; bootstrap(); }
   }
@@ -397,7 +401,7 @@ function AdminView() {
           <Card className="p-5">
             <h3 className="font-display text-xl font-semibold mb-4">Flour</h3>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4 mb-6">
-              <StockCell label="Sacks remaining" value={(settings?.flour_stock_kg ?? 0).toFixed(1)} />
+              <StockCell label="Sacks remaining" value={(settings?.flour_stock_sacks ?? 0).toFixed(1)} />
               <StockCell label="Days left" value={flourDays === null ? "—" : flourDays === 0 ? "Out of stock" : `${flourDays.toFixed(1)} d`} warn={flourDays !== null && flourDays < 2} />
             </div>
             {flourDays !== null && flourDays < 2 && (
@@ -428,7 +432,7 @@ function AdminView() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-xs uppercase tracking-wide text-muted-foreground">Flour remaining after today's production</div>
-                <div className="mt-1 font-display text-3xl font-semibold">{(settings?.flour_stock_kg ?? 0).toFixed(1)} sack{(settings?.flour_stock_kg ?? 0) !== 1 ? "s" : ""}</div>
+                <div className="mt-1 font-display text-3xl font-semibold">{(settings?.flour_stock_sacks ?? 0).toFixed(1)} sack{(settings?.flour_stock_sacks ?? 0) !== 1 ? "s" : ""}</div>
               </div>
               {flourDays !== null && flourDays < 2 && (
                 <div className="rounded-lg border border-destructive/50 bg-destructive/5 px-3 py-2 text-sm text-destructive font-medium">
