@@ -260,7 +260,7 @@ function AdminView() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full justify-start">
+        <TabsList className="w-full justify-start overflow-x-auto">
           <TabsTrigger value="sales">Sales</TabsTrigger>
           <TabsTrigger value="stock">Stock</TabsTrigger>
           <TabsTrigger value="shifts">Shifts</TabsTrigger>
@@ -387,7 +387,7 @@ function AdminView() {
                 <span className="text-2xl">{PRODUCT_EMOJI[p.name] ?? "🎂"}</span>
                 <h3 className="font-display text-xl font-semibold">{p.name}</h3>
               </div>
-              <div className="grid grid-cols-3 gap-3 md:grid-cols-6">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
                 <StockCell label="Produced" value={fmtNum(p.produced)} unit="cakes" />
                 <StockCell label="Sold" value={fmtNum(p.sold)} unit="cakes" />
                 <StockCell label="In store" value={fmtNum(p.inStore)} unit="cakes" />
