@@ -213,21 +213,6 @@ function SalesView() {
       sales_user_id: user.id,
     });
     if (error) { setExBusy(false); return toast.error(error.message); }
-
-    // Add returned cakes back to market stock
-    const returnedStock = stock.find((s) => s.product_id === exReturnedId);
-    const returnErr = returnedStock
-      ? (await supabase.from("stock").update({ cakes: returnedStock.cakes + exQty }).eq("product_id", exReturnedId).eq("location", "market")).error
-      : (await supabase.from("stock").insert({ product_id: exReturnedId, location: "market", cakes: exQty })).error;
-    if (returnErr) { setExBusy(false); return toast.error("Failed to update returned stock"); }
-
-    // Deduct replacement cakes from market stock
-    const replacementStock = stock.find((s) => s.product_id === exReplacementId);
-    if (replacementStock) {
-      const { error: replErr } = await supabase.from("stock").update({ cakes: replacementStock.cakes - exQty }).eq("product_id", exReplacementId).eq("location", "market");
-      if (replErr) { setExBusy(false); return toast.error("Failed to update replacement stock"); }
-    }
-
     setExBusy(false);
     toast.success("Exchange logged");
     setExQty(1);
