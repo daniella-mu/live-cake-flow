@@ -11,6 +11,8 @@ import { fmtKES, fmtNum, elapsed } from "@/lib/format";
 import { format } from "date-fns";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, CartesianGrid } from "recharts";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth-context";
+
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — EllaCakeHub" }] }),
@@ -30,6 +32,7 @@ interface Customer { id: string; name: string; balance: number; }
 interface Trip { id: string; status: string; departed_at: string|null; arrived_at: string|null; }
 interface MismatchTrip { id: string; completed_at: string|null; crates_to_return: number; empty_crates_returned: number; acknowledged_at: string|null; }
 interface CompletedTrip { id: string; completed_at: string|null; overnight_crates: number|null; empty_crates_returned: number|null; }
+interface TripResolution { id: string; trip_id: string; resolved_crate_count: number; resolution_note: string|null; resolved_by: string|null; resolved_at: string; }
 interface Profile { id: string; full_name: string; email: string|null; }
 interface UserRole { user_id: string; role: "admin"|"worker"|"delivery"|"sales"; }
 interface Session { id: string; user_id: string; login_at: string; logout_at: string|null; }
@@ -43,6 +46,7 @@ const PRODUCT_EMOJI: Record<string, string> = {
 };
 
 function AdminView() {
+  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [stock, setStock] = useState<Stock[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
@@ -56,6 +60,7 @@ function AdminView() {
   const [mismatches, setMismatches] = useState<MismatchTrip[]>([]);
   const [completedTripsToday, setCompletedTripsToday] = useState<CompletedTrip[]>([]);
   const [completedTripsYesterday, setCompletedTripsYesterday] = useState<CompletedTrip[]>([]);
+  const [resolutions, setResolutions] = useState<TripResolution[]>([]);
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [tick, setTick] = useState(0);
   const [activeTab, setActiveTab] = useState("sales");
@@ -78,7 +83,7 @@ function AdminView() {
   async function bootstrap() {
     const today = new Date(); today.setHours(0,0,0,0);
     const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
-    const [p, s, sa, se, c, t, pr, ur, ws, ba, ct, cy, ex, di] = await Promise.all([
+    const [p, s, sa, se, c, t, pr, ur, ws, ba, ct, cy, ex, di, tr] = await Promise.all([
       supabase.from("products").select("*").order("name"),
       supabase.from("stock").select("*"),
       supabase.from("sales").select("*").gte("created_at", today.toISOString()).order("created_at",{ascending:false}),
@@ -93,8 +98,9 @@ function AdminView() {
       supabase.from("trips").select("id,completed_at,overnight_crates,empty_crates_returned").eq("status","completed").gte("completed_at", yesterday.toISOString()).lt("completed_at", today.toISOString()),
       supabase.from("exchanges").select("*").gte("created_at", today.toISOString()).order("created_at",{ascending:false}),
       supabase.from("trip_items").select("crates, trips!inner(departed_at)").gte("trips.departed_at", today.toISOString()),
+      supabase.from("trip_resolutions").select("*"),
     ]);
-    const anyError = [p,s,sa,se,c,t,pr,ur,ws,ba,ct,cy,ex,di].find((r) => r.error);
+    const anyError = [p,s,sa,se,c,t,pr,ur,ws,ba,ct,cy,ex,di,tr].find((r) => r.error);
     if (anyError) { toast.error("Failed to load dashboard data — check your connection"); return; }
     setProducts((p.data ?? []) as Product[]);
     setStock((s.data ?? []) as Stock[]);
@@ -109,6 +115,7 @@ function AdminView() {
     setCompletedTripsToday((ct.data ?? []) as CompletedTrip[]);
     setCompletedTripsYesterday((cy.data ?? []) as CompletedTrip[]);
     setExchanges((ex.data ?? []) as Exchange[]);
+    setResolutions((tr.data ?? []) as TripResolution[]);
     setDepartedCratesToday(((di.data ?? []) as { crates: number }[]).reduce((s, r) => s + r.crates, 0));
     const { data: mm } = await supabase.from("trips")
       .select("id,completed_at,crates_to_return,empty_crates_returned,acknowledged_at")
@@ -166,22 +173,31 @@ function AdminView() {
 
   const liveTrip = trips.find((t) => t.status === "in_transit");
 
+  const resolutionFor = useMemo(() => {
+    const map = new Map<string, TripResolution>();
+    resolutions.forEach((r) => {
+      const existing = map.get(r.trip_id);
+      if (!existing || r.resolved_at > existing.resolved_at) map.set(r.trip_id, r);
+    });
+    return (tripId: string) => map.get(tripId);
+  }, [resolutions]);
+
   const crateStats = useMemo(() => {
     const cakesPerCrate = settings?.cakes_per_crate || 30;
     const openingWithCakes = completedTripsYesterday.reduce((s, t) => s + (t.overnight_crates ?? 0), 0);
-    const openingEmpty = completedTripsYesterday.reduce((s, t) => s + (t.empty_crates_returned ?? 0), 0);
+    const openingEmpty = completedTripsYesterday.reduce((s, t) => s + (resolutionFor(t.id)?.resolved_crate_count ?? t.empty_crates_returned ?? 0), 0);
     const producedToday = batches.reduce((s, b) => s + b.crates_produced, 0);
     const totalAvailable = openingWithCakes + producedToday;
     const inStoreCrates = Math.round(stockByLoc.store / cakesPerCrate);
     const inTransitCrates = Math.round(stockByLoc.transit / cakesPerCrate);
     const atMarketCrates = Math.round(stockByLoc.market / cakesPerCrate);
-    const returnedEmptyToday = completedTripsToday.reduce((s, t) => s + (t.empty_crates_returned ?? 0), 0);
+    const returnedEmptyToday = completedTripsToday.reduce((s, t) => s + (resolutionFor(t.id)?.resolved_crate_count ?? t.empty_crates_returned ?? 0), 0);
     const leftStoreToday = departedCratesToday;
     const emptyInStore = openingEmpty + returnedEmptyToday;
     const tomorrowWithCakes = completedTripsToday.reduce((s, t) => s + (t.overnight_crates ?? 0), 0);
     const tomorrowEmpty = emptyInStore;
     return { openingWithCakes, openingEmpty, producedToday, totalAvailable, inStoreCrates, inTransitCrates, atMarketCrates, returnedEmptyToday, leftStoreToday, emptyInStore, tomorrowWithCakes, tomorrowEmpty };
-  }, [completedTripsYesterday, completedTripsToday, batches, stockByLoc, settings, departedCratesToday]);
+  }, [completedTripsYesterday, completedTripsToday, batches, stockByLoc, settings, departedCratesToday, resolutionFor]);
 
   const productStock = useMemo(() => {
     return products.map((p) => {
@@ -235,10 +251,16 @@ function AdminView() {
     else { toast.success("Stock adjusted"); bootstrap(); }
   }
 
-  async function acknowledgeMismatch(id: string) {
-    const { error } = await supabase.from("trips").update({ acknowledged_at: new Date().toISOString() }).eq("id", id);
+  async function resolveMismatch(tripId: string, resolvedCount: number, note: string) {
+    if (!user) return;
+    const { error } = await supabase.from("trip_resolutions").insert({
+      trip_id: tripId,
+      resolved_crate_count: resolvedCount,
+      resolution_note: note || null,
+      resolved_by: user.id,
+    });
     if (error) toast.error(error.message);
-    else bootstrap();
+    else { toast.success("Trip resolved"); bootstrap(); }
   }
 
   async function setRole(userId: string, role: "admin"|"worker"|"delivery"|"sales") {
@@ -524,7 +546,7 @@ function AdminView() {
                   const diff = Math.abs(m.crates_to_return - m.empty_crates_returned);
                   const crate = (n: number) => `${n} crate${n !== 1 ? "s" : ""}`;
                   return (
-                    <div key={m.id} className={`flex items-center justify-between gap-4 rounded-lg border px-4 py-3 ${resolved ? "border-border bg-muted/30" : "border-destructive/40 bg-destructive/5"}`}>
+                    <div key={m.id} className={`flex flex-wrap items-center justify-between gap-4 rounded-lg border px-4 py-3 ${resolved ? "border-border bg-muted/30" : "border-destructive/40 bg-destructive/5"}`}>
                       <div>
                         <div className={`text-sm font-medium ${resolved ? "text-muted-foreground" : "text-destructive"}`}>
                           Trip on {m.completed_at ? new Date(m.completed_at).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" }) : "—"}
@@ -535,15 +557,14 @@ function AdminView() {
                         {resolved && (
                           <div className="text-xs text-muted-foreground mt-0.5">
                             Acknowledged {new Date(m.acknowledged_at!).toLocaleDateString("en-KE", { day: "numeric", month: "short" })} at {new Date(m.acknowledged_at!).toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                            {resolutionFor(m.id) && ` · Resolved to ${crate(resolutionFor(m.id)!.resolved_crate_count)}${resolutionFor(m.id)!.resolution_note ? ` — "${resolutionFor(m.id)!.resolution_note}"` : ""}`}
                           </div>
                         )}
                       </div>
                       {resolved ? (
                         <Badge variant="secondary" className="shrink-0">Resolved</Badge>
                       ) : (
-                        <Button size="sm" variant="outline" className="shrink-0 border-destructive/50 text-destructive hover:bg-destructive/10" onClick={() => acknowledgeMismatch(m.id)}>
-                          Acknowledge
-                        </Button>
+                        <ResolveMismatchForm onResolve={(count, note) => resolveMismatch(m.id, count, note)} />
                       )}
                     </div>
                   );
@@ -675,6 +696,40 @@ function ManualAdjustForm({ products, onAdjust }: { products: Product[]; onAdjus
         <Input type="number" min="0" value={count} onChange={(e) => setCount(e.target.value)} placeholder="e.g. 12" className="w-32" />
       </div>
       <Button type="submit">Update</Button>
+    </form>
+  );
+}
+
+function ResolveMismatchForm({ onResolve }: { onResolve: (count: number, note: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [count, setCount] = useState("");
+  const [note, setNote] = useState("");
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const n = parseInt(count);
+    if (count === "" || isNaN(n) || n < 0) return toast.error("Enter the actual crate count");
+    onResolve(n, note.trim());
+    setCount(""); setNote(""); setOpen(false);
+  }
+  if (!open) {
+    return (
+      <Button size="sm" variant="outline" className="shrink-0 border-destructive/50 text-destructive hover:bg-destructive/10" onClick={() => setOpen(true)}>
+        Resolve
+      </Button>
+    );
+  }
+  return (
+    <form onSubmit={submit} className="flex flex-wrap gap-2 items-end">
+      <div className="space-y-1">
+        <label className="text-xs text-muted-foreground">Actual empty crates</label>
+        <Input type="number" min="0" value={count} onChange={(e) => setCount(e.target.value)} placeholder="e.g. 0" className="w-24" autoFocus />
+      </div>
+      <div className="space-y-1">
+        <label className="text-xs text-muted-foreground">Note (optional)</label>
+        <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="What happened" className="w-40" />
+      </div>
+      <Button type="submit" size="sm" variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10">Save</Button>
+      <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
     </form>
   );
 }
