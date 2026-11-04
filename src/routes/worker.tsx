@@ -135,10 +135,10 @@ function WorkerView() {
           </div>
 
           <div className="space-y-2">
-            <Label>Mixes</Label>
+            <Label htmlFor="worker-mixes">Mixes</Label>
             <div className="flex items-center gap-2">
               <Button type="button" variant="outline" size="lg" onClick={() => setMixes((m) => Math.max(1, m - 1))}>−</Button>
-              <Input type="number" min={1} value={mixes} onChange={(e) => setMixes(Math.max(1, Number(e.target.value)||1))} className="text-center text-2xl font-display h-14" />
+              <Input id="worker-mixes" type="number" min={1} value={mixes} onChange={(e) => setMixes(Math.max(1, Number(e.target.value)||1))} className="text-center text-2xl font-display h-14" />
               <Button type="button" variant="outline" size="lg" onClick={() => setMixes((m) => m + 1)}>+</Button>
             </div>
           </div>
@@ -159,8 +159,8 @@ function WorkerView() {
           )}
 
           <div className="space-y-2">
-            <Label>Note (optional)</Label>
-            <Input placeholder='e.g. "Batch 1" or "Morning run"' value={note} onChange={(e) => setNote(e.target.value)} />
+            <Label htmlFor="worker-note">Note (optional)</Label>
+            <Input id="worker-note" placeholder='e.g. "Batch 1" or "Morning run"' value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
 
           <Button onClick={submit} disabled={busy} size="lg" className="w-full gradient-warm text-primary-foreground">
