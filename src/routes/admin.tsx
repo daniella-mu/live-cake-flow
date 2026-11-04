@@ -564,7 +564,7 @@ function AdminView() {
                       {resolved ? (
                         <Badge variant="secondary" className="shrink-0">Resolved</Badge>
                       ) : (
-                        <ResolveMismatchForm onResolve={(count, note) => resolveMismatch(m.id, count, note)} />
+                        <ResolveMismatchForm id={m.id} onResolve={(count, note) => resolveMismatch(m.id, count, note)} />
                       )}
                     </div>
                   );
@@ -678,29 +678,29 @@ function ManualAdjustForm({ products, onAdjust }: { products: Product[]; onAdjus
   return (
     <form onSubmit={submit} className="flex flex-wrap gap-2 items-end">
       <div className="space-y-1">
-        <label className="text-xs text-muted-foreground">Product</label>
-        <select value={productId} onChange={(e) => setProductId(e.target.value)} className="h-9 rounded-md border border-border bg-background px-2 text-sm">
+        <label htmlFor="manual-adjust-product" className="text-xs text-muted-foreground">Product</label>
+        <select id="manual-adjust-product" value={productId} onChange={(e) => setProductId(e.target.value)} className="h-9 rounded-md border border-border bg-background px-2 text-sm">
           {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
       </div>
       <div className="space-y-1">
-        <label className="text-xs text-muted-foreground">Location</label>
-        <select value={location} onChange={(e) => setLocation(e.target.value as "store" | "transit" | "market")} className="h-9 rounded-md border border-border bg-background px-2 text-sm">
+        <label htmlFor="manual-adjust-location" className="text-xs text-muted-foreground">Location</label>
+        <select id="manual-adjust-location" value={location} onChange={(e) => setLocation(e.target.value as "store" | "transit" | "market")} className="h-9 rounded-md border border-border bg-background px-2 text-sm">
           <option value="store">Store</option>
           <option value="market">Market</option>
           <option value="transit">Transit</option>
         </select>
       </div>
       <div className="space-y-1">
-        <label className="text-xs text-muted-foreground">Actual crate count</label>
-        <Input type="number" min="0" value={count} onChange={(e) => setCount(e.target.value)} placeholder="e.g. 12" className="w-32" />
+        <label htmlFor="manual-adjust-count" className="text-xs text-muted-foreground">Actual crate count</label>
+        <Input id="manual-adjust-count" type="number" min="0" value={count} onChange={(e) => setCount(e.target.value)} placeholder="e.g. 12" className="w-32" />
       </div>
       <Button type="submit">Update</Button>
     </form>
   );
 }
 
-function ResolveMismatchForm({ onResolve }: { onResolve: (count: number, note: string) => void }) {
+function ResolveMismatchForm({ id, onResolve }: { id: string; onResolve: (count: number, note: string) => void }) {
   const [open, setOpen] = useState(false);
   const [count, setCount] = useState("");
   const [note, setNote] = useState("");
@@ -721,12 +721,12 @@ function ResolveMismatchForm({ onResolve }: { onResolve: (count: number, note: s
   return (
     <form onSubmit={submit} className="flex flex-wrap gap-2 items-end">
       <div className="space-y-1">
-        <label className="text-xs text-muted-foreground">Actual empty crates</label>
-        <Input type="number" min="0" value={count} onChange={(e) => setCount(e.target.value)} placeholder="e.g. 0" className="w-24" autoFocus />
+        <label htmlFor={`resolve-count-${id}`} className="text-xs text-muted-foreground">Actual empty crates</label>
+        <Input id={`resolve-count-${id}`} type="number" min="0" value={count} onChange={(e) => setCount(e.target.value)} placeholder="e.g. 0" className="w-24" autoFocus />
       </div>
       <div className="space-y-1">
-        <label className="text-xs text-muted-foreground">Note (optional)</label>
-        <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="What happened" className="w-40" />
+        <label htmlFor={`resolve-note-${id}`} className="text-xs text-muted-foreground">Note (optional)</label>
+        <Input id={`resolve-note-${id}`} value={note} onChange={(e) => setNote(e.target.value)} placeholder="What happened" className="w-40" />
       </div>
       <Button type="submit" size="sm" variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10">Save</Button>
       <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>

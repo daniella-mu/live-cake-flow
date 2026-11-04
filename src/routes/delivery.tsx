@@ -248,8 +248,8 @@ function DeliveryView() {
                     )}
                   </div>
                   <div>
-                    <Label>Empty crates you physically counted</Label>
-                    <Input type="number" min={0} value={empties} onChange={(e) => setEmpties(Number(e.target.value)||0)} className="mt-1" />
+                    <Label htmlFor="empties-counted">Empty crates you physically counted</Label>
+                    <Input id="empties-counted" type="number" min={0} value={empties} onChange={(e) => setEmpties(Number(e.target.value)||0)} className="mt-1" />
                   </div>
                   {empties !== (trip.crates_to_return ?? 0) && empties > 0 && (
                     <div className="rounded-xl border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive">

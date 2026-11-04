@@ -302,12 +302,12 @@ function SalesView() {
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div>
-              <Label>Name</Label>
-              <Input value={newCustomerName} onChange={(e) => setNewCustomerName(e.target.value)} placeholder="Customer name" className="mt-1" />
+              <Label htmlFor="new-customer-name">Name</Label>
+              <Input id="new-customer-name" value={newCustomerName} onChange={(e) => setNewCustomerName(e.target.value)} placeholder="Customer name" className="mt-1" />
             </div>
             <div>
-              <Label>Phone (optional)</Label>
-              <Input value={newCustomerPhone} onChange={(e) => setNewCustomerPhone(e.target.value)} placeholder="e.g. 07XXXXXXXX" className="mt-1" />
+              <Label htmlFor="new-customer-phone">Phone (optional)</Label>
+              <Input id="new-customer-phone" value={newCustomerPhone} onChange={(e) => setNewCustomerPhone(e.target.value)} placeholder="e.g. 07XXXXXXXX" className="mt-1" />
             </div>
           </div>
           <DialogFooter>
@@ -326,12 +326,12 @@ function SalesView() {
           <p className="mt-1 font-medium mb-4">Count the crates and confirm receipt.</p>
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
-              <Label>Crates received</Label>
-              <Input type="number" min={0} value={cratesReceived} onChange={(e) => setCratesReceived(Number(e.target.value)||0)} className="mt-1" />
+              <Label htmlFor="receipt-crates-received">Crates received</Label>
+              <Input id="receipt-crates-received" type="number" min={0} value={cratesReceived} onChange={(e) => setCratesReceived(Number(e.target.value)||0)} className="mt-1" />
             </div>
             <div>
-              <Label>Broken cakes (if any)</Label>
-              <Input type="number" min={0} value={brokenCakes} onChange={(e) => setBrokenCakes(Number(e.target.value)||0)} className="mt-1" />
+              <Label htmlFor="receipt-broken-cakes">Broken cakes (if any)</Label>
+              <Input id="receipt-broken-cakes" type="number" min={0} value={brokenCakes} onChange={(e) => setBrokenCakes(Number(e.target.value)||0)} className="mt-1" />
             </div>
             <div className="flex items-end">
               <Button onClick={confirmReceipt} className="w-full gradient-warm text-primary-foreground">Confirm receipt</Button>
@@ -347,12 +347,12 @@ function SalesView() {
           <p className="mt-1 font-medium mb-4">End of day — log how many crates are going back and how many are staying overnight.</p>
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
-              <Label>Empty crates to return</Label>
-              <Input type="number" min={0} value={cratesToReturn} onChange={(e) => setCratesToReturn(Number(e.target.value)||0)} className="mt-1" />
+              <Label htmlFor="return-crates-to-return">Empty crates to return</Label>
+              <Input id="return-crates-to-return" type="number" min={0} value={cratesToReturn} onChange={(e) => setCratesToReturn(Number(e.target.value)||0)} className="mt-1" />
             </div>
             <div>
-              <Label>Crates with cakes (staying overnight)</Label>
-              <Input type="number" min={0} value={overnightCrates} onChange={(e) => setOvernightCrates(Number(e.target.value)||0)} className="mt-1" />
+              <Label htmlFor="return-overnight-crates">Crates with cakes (staying overnight)</Label>
+              <Input id="return-overnight-crates" type="number" min={0} value={overnightCrates} onChange={(e) => setOvernightCrates(Number(e.target.value)||0)} className="mt-1" />
             </div>
             <div className="flex items-end">
               <Button onClick={prepareReturn} className="w-full gradient-warm text-primary-foreground">Log return</Button>
@@ -382,10 +382,10 @@ function SalesView() {
         <h2 className="font-display text-2xl font-semibold">New sale</h2>
         <div className="mt-5 space-y-5">
           <div>
-            <Label>Customer</Label>
+            <Label htmlFor="customer-search">Customer</Label>
             <div className="relative mt-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search by name…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+              <Input id="customer-search" placeholder="Search by name…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
               {customers.map((c) => (
@@ -398,10 +398,10 @@ function SalesView() {
             </div>
             {selectedCustomer && (
               <div className="mt-3 rounded-xl border border-border bg-card p-3 space-y-2">
-                <Label className="text-xs">Top up {selectedCustomer.name} (Paystack test)</Label>
-                <div className="grid gap-2 sm:grid-cols-3">
-                  <Input type="number" min={1} placeholder="Amount" value={topUpAmount || ""} onChange={(e) => setTopUpAmount(Number(e.target.value) || 0)} />
-                  <Input type="email" placeholder="Email" value={topUpEmail} onChange={(e) => setTopUpEmail(e.target.value)} />
+                <Label className="text-xs" id="topup-heading">Top up {selectedCustomer.name} (Paystack test)</Label>
+                <div className="grid gap-2 sm:grid-cols-3" role="group" aria-labelledby="topup-heading">
+                  <Input type="number" min={1} placeholder="Amount" aria-label="Top-up amount" value={topUpAmount || ""} onChange={(e) => setTopUpAmount(Number(e.target.value) || 0)} />
+                  <Input type="email" placeholder="Email" aria-label="Receipt email" value={topUpEmail} onChange={(e) => setTopUpEmail(e.target.value)} />
                   <Button type="button" variant="outline" disabled={topUpBusy} onClick={topUp}>{topUpBusy ? "Opening…" : "Top up"}</Button>
                 </div>
               </div>
@@ -426,10 +426,10 @@ function SalesView() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <Label>Quantity (cakes)</Label>
+              <Label htmlFor="sale-quantity">Quantity (cakes)</Label>
               <div className="mt-1 flex items-center gap-2">
                 <Button variant="outline" onClick={() => setCakes((c) => Math.max(1, c-1))}>−</Button>
-                <Input type="number" min={1} value={cakes} onChange={(e) => setCakes(Math.max(1, Number(e.target.value)||1))} className="text-center text-xl font-display h-12" />
+                <Input id="sale-quantity" type="number" min={1} value={cakes} onChange={(e) => setCakes(Math.max(1, Number(e.target.value)||1))} className="text-center text-xl font-display h-12" />
                 <Button variant="outline" onClick={() => setCakes((c) => c+1)}>+</Button>
               </div>
             </div>
@@ -505,10 +505,10 @@ function SalesView() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label>Quantity (cakes)</Label>
+                <Label htmlFor="exchange-quantity">Quantity (cakes)</Label>
                 <div className="mt-1 flex items-center gap-2">
                   <Button variant="outline" onClick={() => setExQty((q) => Math.max(1, q-1))}>−</Button>
-                  <Input type="number" min={1} value={exQty} onChange={(e) => setExQty(Math.max(1, Number(e.target.value)||1))} className="text-center text-xl font-display h-12" />
+                  <Input id="exchange-quantity" type="number" min={1} value={exQty} onChange={(e) => setExQty(Math.max(1, Number(e.target.value)||1))} className="text-center text-xl font-display h-12" />
                   <Button variant="outline" onClick={() => setExQty((q) => q+1)}>+</Button>
                 </div>
               </div>
