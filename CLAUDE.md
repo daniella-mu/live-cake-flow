@@ -48,6 +48,19 @@ create policy "users can read their own rows"
 
 Adjust role grants and policies to the table's actual access pattern (e.g. admin-only tables shouldn't grant `anon`). If PostgREST returns a `42501` error, it names the missing grant directly.
 
+## Importing lucide-react Icons
+
+Never `import { IconName } from "lucide-react"`. That pulls in the package's barrel file, which re-exports all ~3,872 icons — Rollup has to open every one of those files during a production build, which exceeds the file-descriptor limit on Cloudflare Workers Builds and fails with `EMFILE: too many open files` (or a confusing downstream "failed to resolve import" on an unrelated package). This doesn't reproduce locally, only on Cloudflare's build container, which makes it easy to misdiagnose.
+
+Always import each icon directly from its own file instead:
+
+```tsx
+import X from "lucide-react/dist/esm/icons/x";
+import ChevronDown from "lucide-react/dist/esm/icons/chevron-down";
+```
+
+The icon's file name is its PascalCase name converted to kebab-case (`ChevronDown` → `chevron-down.js`). TypeScript needs a type for these deep paths since lucide-react doesn't ship one — the wildcard declaration already exists in `src/types/lucide-icons.d.ts`, so no extra setup is needed, just use the direct-import form above for any new icon.
+
 ## Git Workflow
 
 - **Commit messages** follow Conventional Commits — prefix every commit with `fix:`, `feat:`, `chore:`, `docs:`, `refactor:`, etc., matching the type of change (see existing history, e.g. `fix: sms-webhook field name and phone regex`, `chore: gitignore personal planning docs`). Keep the summary short.
