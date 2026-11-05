@@ -2,7 +2,7 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
 import { useAuth, primaryRole, rolePath, type AppRole } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import LogOut from "lucide-react/dist/esm/icons/log-out";
 
 interface Props {
   role: AppRole;
