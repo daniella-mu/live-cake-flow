@@ -432,12 +432,18 @@ function AdminView() {
               </div>
             )}
             <div className="flex flex-wrap gap-4">
-              <form onSubmit={addFlour} className="flex gap-2">
-                <Input ref={flourRef} type="number" min="1" step="1" placeholder="Add sacks" className="w-36" />
+              <form onSubmit={addFlour} className="flex gap-2 items-end">
+                <div className="space-y-1">
+                  <label htmlFor="add-flour-sacks" className="text-xs text-muted-foreground">Add sacks</label>
+                  <Input id="add-flour-sacks" ref={flourRef} type="number" min="1" step="1" placeholder="e.g. 5" className="w-36" />
+                </div>
                 <Button type="submit">Add flour</Button>
               </form>
-              <form onSubmit={setFlour} className="flex gap-2">
-                <Input ref={flourSetRef} type="number" min="0" step="0.1" placeholder="Set exact sacks" className="w-36" />
+              <form onSubmit={setFlour} className="flex gap-2 items-end">
+                <div className="space-y-1">
+                  <label htmlFor="set-flour-sacks" className="text-xs text-muted-foreground">Set exact sacks</label>
+                  <Input id="set-flour-sacks" ref={flourSetRef} type="number" min="0" step="0.1" placeholder="e.g. 12.5" className="w-36" />
+                </div>
                 <Button type="submit" variant="outline">Set stock</Button>
               </form>
             </div>

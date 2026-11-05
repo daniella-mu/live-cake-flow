@@ -177,12 +177,12 @@ function DeliveryView() {
               return (
                 <div key={p.id} className="rounded-xl border border-border bg-card p-4">
                   <div className="flex items-baseline justify-between">
-                    <div className="font-medium">{p.name}</div>
+                    <label htmlFor={`crates-${p.id}`} className="font-medium">{p.name}</label>
                     <div className="text-xs text-muted-foreground">{cratesAvail} avail</div>
                   </div>
                   <div className="mt-3 flex items-center gap-2">
                     <Button variant="outline" onClick={() => setDraftCrates((d) => ({...d, [p.id]: Math.max(0, (d[p.id]??0)-1)}))}>−</Button>
-                    <Input type="number" min={0} max={cratesAvail} value={v}
+                    <Input id={`crates-${p.id}`} aria-label={`Crates of ${p.name}`} type="number" min={0} max={cratesAvail} value={v}
                       onChange={(e) => setDraftCrates((d) => ({...d, [p.id]: Math.min(cratesAvail, Math.max(0, Number(e.target.value)||0))}))}
                       className="text-center"/>
                     <Button variant="outline" onClick={() => setDraftCrates((d) => ({...d, [p.id]: Math.min(cratesAvail, (d[p.id]??0)+1)}))}>+</Button>
