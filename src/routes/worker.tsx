@@ -121,18 +121,18 @@ function WorkerView() {
         <p className="mt-1 text-sm text-muted-foreground">Pick a product and tell us how many mixes you made.</p>
 
         <div className="mt-6 space-y-4">
-          <div className="space-y-2">
-            <Label>Product</Label>
+          <fieldset className="space-y-2 border-0 p-0 m-0">
+            <legend className="text-sm font-medium leading-none">Product</legend>
             <div className="grid grid-cols-2 gap-2">
               {products.map((p) => (
-                <button key={p.id} type="button" onClick={() => setProductId(p.id)}
+                <button key={p.id} type="button" onClick={() => setProductId(p.id)} aria-pressed={productId === p.id}
                   className={`rounded-xl border p-3 text-left transition ${productId === p.id ? "border-primary bg-accent/30 shadow-soft" : "border-border bg-card hover:bg-muted"}`}>
                   <div className="font-medium">{PRODUCT_EMOJI[p.name] ?? "🎂"} {p.name}</div>
                   <div className="text-xs text-muted-foreground">{p.crates_per_mix}× crates / mix</div>
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
 
           <div className="space-y-2">
             <Label htmlFor="worker-mixes">Mixes</Label>

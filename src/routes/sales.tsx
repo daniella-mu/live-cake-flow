@@ -408,13 +408,13 @@ function SalesView() {
             )}
           </div>
 
-          <div>
-            <Label>Product</Label>
+          <fieldset className="border-0 p-0 m-0">
+            <legend className="text-sm font-medium leading-none">Product</legend>
             <div className="mt-1 grid gap-2 sm:grid-cols-2">
               {products.map((p) => {
                 const avail = stockFor(p.id);
                 return (
-                  <button key={p.id} type="button" onClick={() => setProductId(p.id)}
+                  <button key={p.id} type="button" onClick={() => setProductId(p.id)} aria-pressed={productId === p.id}
                     className={`rounded-xl border p-3 text-left transition ${productId === p.id ? "border-primary bg-accent/30" : "border-border bg-card hover:bg-muted"}`}>
                     <div className="font-medium">{p.name}</div>
                     <div className="text-xs text-muted-foreground">{avail} cake{avail !== 1 ? "s" : ""} left</div>
@@ -422,7 +422,7 @@ function SalesView() {
                 );
               })}
             </div>
-          </div>
+          </fieldset>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -433,21 +433,21 @@ function SalesView() {
                 <Button variant="outline" onClick={() => setCakes((c) => c+1)}>+</Button>
               </div>
             </div>
-            <div>
-              <Label>Type</Label>
+            <fieldset className="min-w-0 border-0 p-0 m-0">
+              <legend className="text-sm font-medium leading-none">Type</legend>
               <div className="mt-1 grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => setType("retail")}
+                <button type="button" onClick={() => setType("retail")} aria-pressed={type === "retail"}
                   className={`rounded-xl border p-3 text-left ${type==="retail"?"border-primary bg-accent/30":"border-border"}`}>
                   <div className="font-medium">Retail</div>
                   <div className="text-xs text-muted-foreground">{fmtKES(settings?.retail_price ?? 0)}/cake</div>
                 </button>
-                <button type="button" onClick={() => setType("wholesale")}
+                <button type="button" onClick={() => setType("wholesale")} aria-pressed={type === "wholesale"}
                   className={`rounded-xl border p-3 text-left ${type==="wholesale"?"border-primary bg-accent/30":"border-border"}`}>
                   <div className="font-medium">Wholesale</div>
                   <div className="text-xs text-muted-foreground">{fmtKES(settings?.wholesale_price ?? 0)}/cake</div>
                 </button>
               </div>
-            </div>
+            </fieldset>
           </div>
 
           <div className="rounded-xl gradient-cream p-4 space-y-2">
@@ -480,29 +480,29 @@ function SalesView() {
         {!selectedCustomer && <p className="mt-3 text-sm text-destructive">Select a customer above first.</p>}
         {selectedCustomer && (
           <div className="mt-5 space-y-4">
-            <div>
-              <Label>Product returned by customer</Label>
+            <fieldset className="border-0 p-0 m-0">
+              <legend className="text-sm font-medium leading-none">Product returned by customer</legend>
               <div className="mt-1 grid gap-2 sm:grid-cols-2">
                 {products.map((p) => (
-                  <button key={p.id} type="button" onClick={() => setExReturnedId(p.id)}
+                  <button key={p.id} type="button" onClick={() => setExReturnedId(p.id)} aria-pressed={exReturnedId === p.id}
                     className={`rounded-xl border p-3 text-left transition ${exReturnedId === p.id ? "border-primary bg-accent/30" : "border-border bg-card hover:bg-muted"}`}>
                     <div className="font-medium">{p.name}</div>
                   </button>
                 ))}
               </div>
-            </div>
-            <div>
-              <Label>Replacement product to give</Label>
+            </fieldset>
+            <fieldset className="border-0 p-0 m-0">
+              <legend className="text-sm font-medium leading-none">Replacement product to give</legend>
               <div className="mt-1 grid gap-2 sm:grid-cols-2">
                 {products.map((p) => (
-                  <button key={p.id} type="button" onClick={() => setExReplacementId(p.id)}
+                  <button key={p.id} type="button" onClick={() => setExReplacementId(p.id)} aria-pressed={exReplacementId === p.id}
                     className={`rounded-xl border p-3 text-left transition ${exReplacementId === p.id ? "border-primary bg-accent/30" : "border-border bg-card hover:bg-muted"}`}>
                     <div className="font-medium">{p.name}</div>
                     <div className="text-xs text-muted-foreground">{stockFor(p.id)} left</div>
                   </button>
                 ))}
               </div>
-            </div>
+            </fieldset>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="exchange-quantity">Quantity (cakes)</Label>
@@ -512,19 +512,19 @@ function SalesView() {
                   <Button variant="outline" onClick={() => setExQty((q) => q+1)}>+</Button>
                 </div>
               </div>
-              <div>
-                <Label>Reason</Label>
+              <fieldset className="min-w-0 border-0 p-0 m-0">
+                <legend className="text-sm font-medium leading-none">Reason</legend>
                 <div className="mt-1 grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => setExReason("wrong_type")}
+                  <button type="button" onClick={() => setExReason("wrong_type")} aria-pressed={exReason === "wrong_type"}
                     className={`rounded-xl border p-3 text-left ${exReason==="wrong_type"?"border-primary bg-accent/30":"border-border"}`}>
                     <div className="font-medium text-sm">Wrong type</div>
                   </button>
-                  <button type="button" onClick={() => setExReason("damaged")}
+                  <button type="button" onClick={() => setExReason("damaged")} aria-pressed={exReason === "damaged"}
                     className={`rounded-xl border p-3 text-left ${exReason==="damaged"?"border-primary bg-accent/30":"border-border"}`}>
                     <div className="font-medium text-sm">Damaged</div>
                   </button>
                 </div>
-              </div>
+              </fieldset>
             </div>
             <Button size="lg" disabled={exBusy || !exReturnedId || !exReplacementId} onClick={logExchange} className="w-full gradient-warm text-primary-foreground disabled:opacity-50">
               {exBusy ? "Logging…" : "Log exchange"}
