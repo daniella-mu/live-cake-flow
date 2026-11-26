@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export type AppRole = "admin" | "worker" | "delivery" | "sales";
 
@@ -79,13 +80,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .limit(1)
         .single();
       if (data) {
-        await supabase
+        const { error } = await supabase
           .from("work_sessions")
           .update({ logout_at: new Date().toISOString() })
           .eq("id", data.id);
+        if (error) console.error("Failed to close work session:", error.message);
       }
     }
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) { toast.error("Log out failed — please try again"); return; }
     setRoles([]);
   }
 

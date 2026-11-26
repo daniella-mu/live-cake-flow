@@ -50,7 +50,7 @@ export function RoleShell({ role, title, subtitle, children }: Props) {
           </Link>
           <div className="flex items-center gap-2">
             <span className="hidden text-xs text-muted-foreground sm:inline">{user.user_metadata?.full_name ?? user.email?.split("@")[0]}</span>
-            <Button variant="outline" size="sm" onClick={() => { signOut(); router.navigate({ to: "/login" }); }} className="gap-1.5">
+            <Button variant="outline" size="sm" onClick={async () => { await signOut(); router.navigate({ to: "/login" }); }} className="gap-1.5">
               <LogOut className="h-4 w-4" />
               <span>Log out</span>
             </Button>
